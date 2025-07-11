@@ -25,9 +25,9 @@ fi
 # 讀取環境配置 (改善的 yaml 解析)
 TAG_PREFIX=""
 if [ "$ENVIRONMENT" = "beta" ]; then
-    TAG_PREFIX=$(grep -A 2 "beta:" "$CONFIG_FILE" | grep "tag:" | sed 's/tag:[[:space:]]*"\([^"]*\)".*/\1/')
+    TAG_PREFIX=$(grep -A 2 "beta:" "$CONFIG_FILE" | grep "tag:" | sed 's/tag:[[:space:]]*"\([^"]*\)".*/\1/' | tr -d '[:space:]')
 elif [ "$ENVIRONMENT" = "delta" ]; then
-    TAG_PREFIX=$(grep -A 2 "delta:" "$CONFIG_FILE" | grep "tag:" | sed 's/tag:[[:space:]]*"\([^"]*\)".*/\1/')
+    TAG_PREFIX=$(grep -A 2 "delta:" "$CONFIG_FILE" | grep "tag:" | sed 's/tag:[[:space:]]*"\([^"]*\)".*/\1/' | tr -d '[:space:]')
 else
     echo "❌ 不支援的環境: $ENVIRONMENT"
     exit 1
