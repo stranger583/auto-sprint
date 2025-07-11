@@ -14,8 +14,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-# 讀取 sprint 編號 (簡單的 yaml 解析)
-SPRINT_NUMBER=$(grep "current_sprint:" "$CONFIG_FILE" | cut -d':' -f2 | tr -d ' "')
+# 讀取 sprint 編號 (改善的 yaml 解析)
+SPRINT_NUMBER=$(grep "current_sprint:" "$CONFIG_FILE" | sed 's/current_sprint:[[:space:]]*"\([^"]*\)".*/\1/')
 if [ -z "$SPRINT_NUMBER" ]; then
     echo "❌ 無法讀取 sprint 編號"
     exit 1
@@ -36,4 +36,4 @@ echo "建立 beta sprint 分支..."
 git checkout -b "$BETA_BRANCH"
 git push -u origin "$BETA_BRANCH"
 
-echo "✅ 已建立分支: $BETA_BRANCH" 
+echo "✅ 已建立分支: $BETA_BRANCH"

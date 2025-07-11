@@ -5,11 +5,12 @@ current_sprint: "2501" # 格式: YYXX (年+週數)
 
 # 要 merge 進 beta 的分支
 beta_branches:
-  - "feat/test-page"
+  - "feat/add-cruise-page"
+  - "feat/add-usimsa-page"
 
 # 要 merge 進 delta 的分支
 delta_branches:
-  - "fix/update-styles"
+  - "fix/update-bnb-page"
 
 # 環境配置
 environments:
