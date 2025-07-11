@@ -15,11 +15,11 @@ delta_branches:
 environments:
   beta:
     name: "beta"
-    tag: "CD"
+    tag: "CD-BETA"
     vercel_env: "preview" # Vercel Preview 環境
   delta:
     name: "delta"
-    tag: "CD"
+    tag: "CD-DELTA"
     vercel_env: "production" # Vercel Production 環境
 
 # 自動化設定
