@@ -14,8 +14,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-# 讀取 sprint 編號
-SPRINT_NUMBER=$(grep "current_sprint:" "$CONFIG_FILE" | cut -d':' -f2 | tr -d ' "')
+# 讀取 sprint 編號 (改善的 yaml 解析)
+SPRINT_NUMBER=$(grep "current_sprint:" "$CONFIG_FILE" | sed 's/current_sprint:[[:space:]]*"\([^"]*\)".*/\1/')
 BETA_BRANCH="beta/sprint-${SPRINT_NUMBER}"
 DELTA_BRANCH="delta/sprint-${SPRINT_NUMBER}"
 
@@ -29,4 +29,4 @@ git checkout "$BETA_BRANCH"
 git checkout -b "$DELTA_BRANCH"
 git push -u origin "$DELTA_BRANCH"
 
-echo "✅ 已建立分支: $DELTA_BRANCH" 
+echo "✅ 已建立分支: $DELTA_BRANCH"

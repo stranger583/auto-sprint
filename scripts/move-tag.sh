@@ -22,12 +22,12 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-# 讀取環境配置
+# 讀取環境配置 (改善的 yaml 解析)
 TAG_PREFIX=""
 if [ "$ENVIRONMENT" = "beta" ]; then
-    TAG_PREFIX=$(grep -A 2 "beta:" "$CONFIG_FILE" | grep "tag:" | cut -d':' -f2 | tr -d ' "')
+    TAG_PREFIX=$(grep -A 2 "beta:" "$CONFIG_FILE" | grep "tag:" | sed 's/tag:[[:space:]]*"\([^"]*\)".*/\1/')
 elif [ "$ENVIRONMENT" = "delta" ]; then
-    TAG_PREFIX=$(grep -A 2 "delta:" "$CONFIG_FILE" | grep "tag:" | cut -d':' -f2 | tr -d ' "')
+    TAG_PREFIX=$(grep -A 2 "delta:" "$CONFIG_FILE" | grep "tag:" | sed 's/tag:[[:space:]]*"\([^"]*\)".*/\1/')
 else
     echo "❌ 不支援的環境: $ENVIRONMENT"
     exit 1
@@ -72,4 +72,4 @@ else
     echo "請手動處理 $ENVIRONMENT 環境部署"
 fi
 
-echo "🎉 $ENVIRONMENT 環境部署流程完成" 
+echo "🎉 $ENVIRONMENT 環境部署流程完成"
