@@ -1,0 +1,35 @@
+# 每週任務配置檔案
+# 每週五更新這個檔案，週一會自動執行
+
+current_sprint: "2501" # 格式: YYXX (年+週數)
+
+# 要 merge 進 beta 的分支
+beta_branches:
+  - "feat/add-cruise-page"
+  - "feat/add-usimsa-page"
+
+# 要 merge 進 delta 的分支
+delta_branches:
+  - "fix/update-bnb-page"
+
+# 環境配置
+environments:
+  beta:
+    name: "beta"
+    tag: "CD"
+    vercel_env: "preview" # Vercel Preview 環境
+  delta:
+    name: "delta"
+    tag: "CD"
+    vercel_env: "production" # Vercel Production 環境
+
+# 自動化設定
+automation:
+  auto_merge: true
+  auto_deploy: true
+  create_pull_requests: true
+
+# Vercel 配置 (練習用)
+vercel:
+  project_id: "${{ secrets.VERCEL_PROJECT_ID }}"
+  token: "${{ secrets.VERCEL_TOKEN }}"

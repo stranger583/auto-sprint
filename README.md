@@ -1,70 +1,153 @@
-# Getting Started with Create React App
+# 🚀 自動化部署測試專案
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+這是一個用於測試自動化部署流程的 React 專案。
 
-## Available Scripts
+## 🎯 專案特色
 
-In the project directory, you can run:
+- ✅ React 18 + 現代化 UI
+- ✅ 自動化 Git 分支管理
+- ✅ Vercel 多環境部署
+- ✅ Shell 腳本自動化
+- ✅ GitHub Actions 整合
 
-### `npm start`
+## 🚀 快速開始
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 1. 安裝依賴
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+npm install
+```
 
-### `npm test`
+### 2. 本地開發
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm start
+```
 
-### `npm run build`
+### 3. 測試自動化流程
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+# 完整流程
+npm run run-all
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# 個別步驟
+npm run step1  # 建立分支
+npm run step2  # Merge beta
+npm run step3  # 部署 beta
+npm run step4  # 建立 delta
+npm run step5  # Merge delta
+npm run step6  # 部署 delta
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 📋 詳細教學
 
-### `npm run eject`
+請參考 [STEP-BY-STEP-GUIDE.md](./STEP-BY-STEP-GUIDE.md) 進行完整的設定和測試。
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🎨 專案結構
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+test-app/
+├── src/                    # React 源碼
+│   ├── App.js             # 主應用
+│   ├── App.css            # 樣式
+│   └── index.js           # 入口
+├── scripts/               # 自動化腳本
+│   ├── run-all-steps.sh   # 完整流程
+│   ├── step-1-*.sh        # 步驟 1-6
+│   └── deploy-*.sh        # 部署腳本
+├── config/                # 配置檔案
+│   └── weekly-tasks.yaml  # 每週任務
+├── .github/               # GitHub Actions
+└── package.json           # 專案配置
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🌍 環境對應
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+| 環境  | Vercel 環境 | URL 格式                              |
+| ----- | ----------- | ------------------------------------- |
+| Beta  | Preview     | `專案名-git-分支名-用戶名.vercel.app` |
+| Delta | Production  | `專案名.vercel.app`                   |
 
-## Learn More
+## 🔧 配置說明
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### weekly-tasks.yaml
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```yaml
+current_sprint: "2501" # Sprint 編號
+beta_branches: # Beta 分支
+  - "feat/test-page"
+delta_branches: # Delta 分支
+  - "fix/update-styles"
+environments: # 環境配置
+  beta:
+    name: "beta"
+    tag: "CD"
+    vercel_env: "preview"
+  delta:
+    name: "delta"
+    tag: "CD"
+    vercel_env: "production"
+```
 
-### Code Splitting
+## 🎯 測試流程
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. **建立測試分支**
 
-### Analyzing the Bundle Size
+   ```bash
+   git checkout -b feat/test-page
+   git push -u origin feat/test-page
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+2. **更新配置**
 
-### Making a Progressive Web App
+   ```bash
+   # 編輯 config/weekly-tasks.yaml
+   beta_branches:
+     - "feat/test-page"
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+3. **執行自動化**
 
-### Advanced Configuration
+   ```bash
+   npm run run-all
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+4. **觀察結果**
+   - 檢查 Git 分支
+   - 查看 Vercel 部署
+   - 訪問部署的網站
 
-### Deployment
+## 🚨 故障排除
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### 常見問題
 
-### `npm run build` fails to minify
+1. **Vercel Token 無效**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+   - 重新生成 Token
+   - 檢查環境變數設定
+
+2. **分支不存在**
+
+   - 確保分支已推送到 GitHub
+   - 檢查分支名稱拼寫
+
+3. **部署失敗**
+   - 檢查 Vercel 專案設定
+   - 確認環境變數正確
+
+## 📚 學習資源
+
+- [Vercel 部署指南](./vercel-setup.md)
+- [完整教學指南](./STEP-BY-STEP-GUIDE.md)
+- [自動化腳本說明](../README.md)
+
+## 🎉 完成測試
+
+完成所有步驟後，你將擁有：
+
+- ✅ 完整的自動化部署流程
+- ✅ 多環境部署經驗
+- ✅ Shell 腳本開發技能
+- ✅ CI/CD 流程理解
+
+現在可以將這個流程應用到你的實際專案中了！
