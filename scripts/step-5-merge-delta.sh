@@ -27,11 +27,11 @@ git checkout "$DELTA_BRANCH"
 echo "讀取要 merge 的 delta 分支..."
 DELTA_BRANCHES=()
 while IFS= read -r line; do
-    if [[ $line =~ ^[[:space:]]*-[[:space:]]*\"([^\"]+)\" ]]; then
+    if [[ $line =~ ^[[:space:]]{2}-[[:space:]]*\"([^\"]+)\" ]]; then
         branch="${BASH_REMATCH[1]}"
         DELTA_BRANCHES+=("$branch")
     fi
-done < <(sed -n '/delta_branches:/,/^[^[:space:]]/p' "$CONFIG_FILE" | grep "^-")
+done < <(sed -n '/delta_branches:/,/^[^[:space:]]/p' "$CONFIG_FILE" | grep "  -")
 
 if [ ${#DELTA_BRANCHES[@]} -eq 0 ]; then
     echo "⚠️ 沒有找到要 merge 的 delta 分支"

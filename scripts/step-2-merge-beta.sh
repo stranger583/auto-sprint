@@ -27,11 +27,11 @@ git checkout "$BETA_BRANCH"
 echo "讀取要 merge 的 beta 分支..."
 BETA_BRANCHES=()
 while IFS= read -r line; do
-    if [[ $line =~ ^[[:space:]]*-[[:space:]]*\"([^\"]+)\" ]]; then
+    if [[ $line =~ ^[[:space:]]{2}-[[:space:]]*\"([^\"]+)\" ]]; then
         branch="${BASH_REMATCH[1]}"
         BETA_BRANCHES+=("$branch")
     fi
-done < <(sed -n '/beta_branches:/,/^[^[:space:]]/p' "$CONFIG_FILE" | grep "^-")
+done < <(sed -n '/beta_branches:/,/^[^[:space:]]/p' "$CONFIG_FILE" | grep "  -")
 
 if [ ${#BETA_BRANCHES[@]} -eq 0 ]; then
     echo "⚠️ 沒有找到要 merge 的 beta 分支"
