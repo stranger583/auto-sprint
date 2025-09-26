@@ -79,14 +79,6 @@ runs:
         - ${task}"
             done
           fi
-          
-          # Add assignee mentions if available
-          if [ -n "${{ inputs.failed_assignees }}" ]; then
-            FAILED_INFO="${FAILED_INFO}
-
-        👥 *Please check:* ${{ inputs.failed_assignees }}"
-          fi
-          
           ADDITIONAL_INFO="$FAILED_INFO"
         else
           EMOJI="🟢"
