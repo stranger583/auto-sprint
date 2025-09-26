@@ -72,8 +72,14 @@ runs:
           if [ -n "${{ inputs.failed_tasks }}" ]; then
             FAILED_INFO="${FAILED_INFO}
         ❌ *Failed Tasks:*"
+            # Debug: Log the received failed_tasks input
+            echo "🔍 Debug: received failed_tasks='${{ inputs.failed_tasks }}'" >&2
             # Split failed tasks and format as list
             IFS='|' read -ra tasks <<< "${{ inputs.failed_tasks }}"
+            echo "🔍 Debug: split into ${#tasks[@]} tasks" >&2
+            for i in "${!tasks[@]}"; do
+              echo "🔍 Debug: task[$i]='${tasks[$i]}'" >&2
+            done
             for task in "${tasks[@]}"; do
               FAILED_INFO="${FAILED_INFO}
         - ${task}"
