@@ -137,6 +137,7 @@ jobs:
           branch_type: "delta"
           branch_name: ${{ steps.create_delta.outputs.branch_name }}
           failed_tasks: ${{ steps.process_delta.outputs.failed_tasks_str }}
+          failed_assignees: ${{ steps.process_delta.outputs.failed_assignees }}
           failed_branches: ${{ steps.create_delta.outputs.branch_name }}
 
       - name: Notify Delta Beta Branch Not Found

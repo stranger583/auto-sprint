@@ -105,6 +105,7 @@ jobs:
           branch_type: "beta"
           branch_name: ${{ steps.create_beta.outputs.branch_name }}
           failed_tasks: ${{ steps.process_beta.outputs.failed_tasks_str }}
+          failed_assignees: ${{ steps.process_beta.outputs.failed_assignees }}
           failed_branches: ${{ steps.create_beta.outputs.branch_name }}
 
       - name: Trigger Delta Workflow
