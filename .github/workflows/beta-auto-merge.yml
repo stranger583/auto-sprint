@@ -1,4 +1,4 @@
-name: Beta Auto Merge
+name: Beta Auto Merge v2
 
 on:
   workflow_dispatch:
