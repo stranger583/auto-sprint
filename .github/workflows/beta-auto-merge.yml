@@ -108,7 +108,7 @@ jobs:
           echo "  failed_tasks='${{ steps.process_beta.outputs.failed_tasks_str }}'"
           echo "  failed_count='${{ steps.process_beta.outputs.failed_count }}'"
 
-      - name: Notify Beta Merge Error
+      - name: Notify Beta Merge Error 更新 name 是否能更新檔案
         if: steps.process_beta.outputs.failed_count > 0
         uses: ./.github/actions/notify-chat
         with:
