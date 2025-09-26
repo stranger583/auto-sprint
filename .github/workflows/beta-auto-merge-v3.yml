@@ -117,7 +117,7 @@ jobs:
 
       - name: Notify Beta Merge Error 更新 name 是否能更新檔案
         if: steps.process_beta.outputs.failed_count > 0
-        uses: ./.github/actions/notify-chat-v3
+        uses: ted-wen-asiayo/auto-sprint@fd4c07416902fcacf2378b6d8c26001206016087/.github/actions/notify-chat-v3
         with:
           name: "Beta Merge Error - 改個名稱 v3 看看"
           url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
