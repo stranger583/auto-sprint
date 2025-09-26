@@ -23,6 +23,12 @@ jobs:
           ref: "master"
           fetch-depth: 0
 
+      - name: Show current commit 除錯用
+        run: git rev-parse HEAD
+
+      - name: List local actions 除錯用
+        run: ls -R .github/actions
+
       - name: Setup Git
         run: |
           git config --global user.name 'GitHub Actions'
