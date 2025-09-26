@@ -1,0 +1,327 @@
+name: "Process ClickUp Tasks"
+description: "Fetch and process ClickUp tasks for a specific status"
+inputs:
+  status:
+    description: "Task status (beta or delta)"
+    required: true
+  branch_name:
+    description: "Target branch name"
+    required: true
+outputs:
+  merged_count:
+    description: "Number of successfully merged tasks"
+    value: ${{ steps.process.outputs.merged_count }}
+  total_tasks:
+    description: "Total number of tasks found"
+    value: ${{ steps.process.outputs.total_tasks }}
+  failed_count:
+    description: "Number of failed tasks"
+    value: ${{ steps.process.outputs.failed_count }}
+  failed_tasks_str:
+    description: "Failed tasks list"
+    value: ${{ steps.process.outputs.failed_tasks_str }}
+  process_success:
+    description: "Whether processing was successful"
+    value: ${{ steps.process.outputs.process_success }}
+  has_tasks:
+    description: "Whether tasks were found"
+    value: ${{ steps.process.outputs.has_tasks }}
+  all_tasks_merged:
+    description: "Whether all tasks were merged"
+    value: ${{ steps.process.outputs.all_tasks_merged }}
+  failed_assignees:
+    description: "Failed tasks assignees for notification"
+    value: ${{ steps.process.outputs.failed_assignees }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Process Tasks
+      id: process
+      shell: bash
+      run: |
+        # Common functions
+        cat << 'FUNCTIONS' > /tmp/common_functions.sh
+
+        # Fetch tasks from ClickUp API
+        fetch_clickup_tasks() {
+          local status="$1"
+          local output_file="$2"
+          
+          echo "📡 Fetching $status tasks from ClickUp API..." >&2
+          
+          local http_code
+          http_code=$(curl -w "%{http_code}" -s --max-time 30 \
+            -H "Authorization: $CLICKUP_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -o "$output_file" \
+            "https://api.clickup.com/api/v2/list/$CLICKUP_LIST_ID/task?statuses[]=$status")
+          
+          if [ "$http_code" != "200" ]; then
+            echo "::error::❌ ClickUp API request failed with HTTP status: $http_code" >&2
+            [ -f "$output_file" ] && cat "$output_file" >&2
+            return 1
+          fi
+          
+          if ! jq empty "$output_file" 2>/dev/null; then
+            echo "::error::❌ Invalid JSON response from ClickUp API" >&2
+            cat "$output_file" >&2
+            return 1
+          fi
+          
+          echo "✅ Successfully fetched $status tasks" >&2
+          return 0
+        }
+
+        # Parse tasks and return task-branch-assignee pairs
+        parse_tasks() {
+          local input_file="$1"
+          local status="$2"
+          
+          jq -r ".tasks[] | 
+          select(
+            .status.status == \"$status\" and 
+            (.custom_fields[] | select(.name == \"Repository\") | .value) == \"$REPOSITORY_NAME\"
+          ) | 
+          (.custom_fields[] | select(.name == \"Branch\") | .value) as \$branch |
+          select(\$branch != null and \$branch != \"\") |
+          (.assignees[]?.username // \"unassigned\") as \$assignee |
+          \"\(.name)\t\(\$branch)\t\(.id)\t\(\$assignee)\"" "$input_file" | sort
+        }
+
+        # Clean up git state
+        cleanup_git() {
+          git merge --abort 2>/dev/null || true
+          git clean -fd 2>/dev/null || true
+        }
+
+        # Merge a single task branch
+        merge_task_branch() {
+          local task_name="$1"
+          local branch_name="$2"
+          local task_type="$3"
+          
+          echo "📦 Processing $task_type task: $task_name" >&2
+          echo "   Branch: $branch_name" >&2
+          
+          # Check if branch exists remotely
+          if ! git ls-remote --exit-code --heads origin "$branch_name" >/dev/null 2>&1; then
+            echo "❌ Branch $branch_name not found remotely" >&2
+            echo "::warning::Branch not found for $task_type task: $task_name" >&2
+            return 1
+          fi
+          
+          echo "✅ Branch exists remotely" >&2
+          
+          # Fetch the latest version
+          if ! git fetch origin "$branch_name" >/dev/null 2>&1; then
+            echo "❌ Failed to fetch branch $branch_name" >&2
+            return 1
+          fi
+          
+          echo "📥 Fetched latest version" >&2
+          
+          # Check if there are changes to merge
+          if ! git merge-tree $(git merge-base HEAD "origin/$branch_name") HEAD "origin/$branch_name" | grep -q .; then
+            echo "ℹ️ No changes to merge (already up to date)" >&2
+            return 0
+          fi
+          
+          echo "🔄 Changes detected, performing squash merge..." >&2
+          
+          # Perform squash merge (redirect all output to stderr)
+          if ! git merge "origin/$branch_name" --squash --no-edit >/dev/null 2>&1; then
+            echo "❌ Merge conflict detected for $task_type $branch_name" >&2
+            echo "::error::Merge conflict detected for $task_type task: $task_name (branch: $branch_name)" >&2
+            cleanup_git
+            return 1
+          fi
+          
+          # Check if there are changes to commit
+          if ! git diff --cached --quiet; then
+            if git commit -m "feat: merge $task_type $branch_name" >/dev/null 2>&1; then
+              echo "✅ Successfully squash merged $task_type $branch_name" >&2
+              return 0
+            else
+              echo "❌ Failed to commit squash merge for $task_type $branch_name" >&2
+              cleanup_git
+              return 1
+            fi
+          else
+            echo "ℹ️ No changes to commit (already up to date)" >&2
+            return 0
+          fi
+        }
+
+        # Process multiple tasks
+        process_tasks() {
+          local task_data="$1"
+          local task_type="$2"
+          local target_branch="$3"
+          
+          if [ -z "$task_data" ]; then
+            echo "ℹ️ No $task_type tasks found for $REPOSITORY_NAME repository" >&2
+            echo "0:0:0:"
+            return 0
+          fi
+          
+          local total_tasks merged_count=0
+          total_tasks=$(echo "$task_data" | wc -l)
+          local failed_tasks=()
+          local failed_assignees=()
+          
+          echo "🎯 Found $total_tasks $task_type tasks for $REPOSITORY_NAME:" >&2
+          while IFS=$'\t' read -r task_name branch_name task_id assignee; do
+            echo "  📋 $task_name (Branch: $branch_name, Assignee: $assignee)" >&2
+          done <<< "$task_data"
+          
+          echo "🚀 Starting $task_type merge process for $total_tasks tasks..." >&2
+          
+          # Ensure we're on the correct branch
+          if ! git checkout "$target_branch" >/dev/null 2>&1; then
+            echo "::error::❌ Failed to checkout $task_type branch $target_branch" >&2
+            return 1
+          fi
+          
+          # Process each task using here-string to avoid subshell issues
+          while IFS=$'\t' read -r task_name branch_name task_id assignee; do
+            if [ -n "$task_name" ] && [ -n "$branch_name" ]; then
+              if merge_task_branch "$task_name" "$branch_name" "$task_type"; then
+                merged_count=$((merged_count + 1))
+              else
+                failed_tasks+=("$task_name ($branch_name) - Assignee: $assignee")
+                if [ "$assignee" != "unassigned" ]; then
+                  failed_assignees+=("$assignee")
+                fi
+              fi
+            fi
+          done <<< "$task_data"
+          
+          # Generate summary
+          echo "📊 $task_type Merge Summary:" >&2
+          echo "   Total tasks: $total_tasks" >&2
+          echo "   Successfully merged: $merged_count" >&2
+          echo "   Failed: ${#failed_tasks[@]}" >&2
+          
+          # Report failed tasks
+          if [ ${#failed_tasks[@]} -gt 0 ]; then
+            echo "❌ Failed $task_type tasks:" >&2
+            for task in "${failed_tasks[@]}"; do
+              echo "   $task" >&2
+            done
+          fi
+          
+          # Push changes if successful merges
+          if [ $merged_count -gt 0 ]; then
+            echo "📤 Pushing $merged_count successful $task_type merges..." >&2
+            if git push origin "$target_branch" >/dev/null 2>&1; then
+              echo "✅ Successfully pushed all $task_type changes" >&2
+            else
+              echo "::error::❌ Failed to push $task_type changes" >&2
+              return 1
+            fi
+          else
+            echo "⚠️ No $task_type changes to push" >&2
+          fi
+          
+          # Return results - now includes failed task names and assignees
+          local failed_tasks_str=""
+          local failed_assignees_str=""
+          if [ ${#failed_tasks[@]} -gt 0 ]; then
+            failed_tasks_str=$(printf "%s|" "${failed_tasks[@]}" | sed 's/|$//')
+          fi
+          if [ ${#failed_assignees[@]} -gt 0 ]; then
+            # Remove duplicates and create unique assignees list
+            local unique_assignees=($(printf "%s\n" "${failed_assignees[@]}" | sort -u))
+            failed_assignees_str=$(printf "@%s " "${unique_assignees[@]}" | sed 's/ $//')
+          fi
+          echo "$merged_count:$total_tasks:${#failed_tasks[@]}:$failed_tasks_str:$failed_assignees_str"
+        }
+        FUNCTIONS
+
+        source /tmp/common_functions.sh
+
+        echo "🚀 Starting ${{ inputs.status }} task processing..."
+
+        # Fetch tasks
+        if ! fetch_clickup_tasks "${{ inputs.status }}" "/tmp/clickup_${{ inputs.status }}_response.json"; then
+          echo "process_success=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+        # Parse tasks
+        TASK_DATA=$(parse_tasks "/tmp/clickup_${{ inputs.status }}_response.json" "${{ inputs.status }}")
+
+        # Check if we have tasks
+        if [ -z "$TASK_DATA" ]; then
+          echo "⚠️ No ${{ inputs.status }} tasks found, setting default values"
+          echo "merged_count=0" >> $GITHUB_OUTPUT
+          echo "total_tasks=0" >> $GITHUB_OUTPUT
+          echo "failed_count=0" >> $GITHUB_OUTPUT
+          echo "all_tasks_merged=false" >> $GITHUB_OUTPUT
+          echo "process_success=true" >> $GITHUB_OUTPUT
+          echo "has_tasks=false" >> $GITHUB_OUTPUT
+          
+          {
+            echo "### ${{ inputs.status }} Tasks Processing Summary"
+            echo "- **Total ${{ inputs.status }} tasks:** 0"
+            echo "- **Successfully merged:** 0"
+            echo "- **Failed:** 0"
+            echo "- **Status:** ⚠️ No tasks to process"
+          } >> "$GITHUB_STEP_SUMMARY"
+          
+          rm -f /tmp/clickup_${{ inputs.status }}_response.json
+          exit 0
+        fi
+
+        # Process tasks
+        RESULT=$(process_tasks "$TASK_DATA" "${{ inputs.status }}" "${{ inputs.branch_name }}" | tail -1)
+
+        # Parse results
+        IFS=':' read -r merged_count total_tasks failed_count failed_tasks_str failed_assignees_str <<< "$RESULT"
+
+        # Validate parsed values
+        if [ -z "$merged_count" ] || [ -z "$total_tasks" ] || [ -z "$failed_count" ]; then
+          echo "❌ Error: Failed to parse RESULT properly"
+          echo "process_success=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+        # Additional validation: ensure values are numeric
+        if ! [[ "$merged_count" =~ ^[0-9]+$ ]] || ! [[ "$total_tasks" =~ ^[0-9]+$ ]] || ! [[ "$failed_count" =~ ^[0-9]+$ ]]; then
+          echo "❌ Error: Parsed values are not numeric"
+          echo "process_success=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+        # Set outputs
+        echo "merged_count=$merged_count" >> $GITHUB_OUTPUT
+        echo "total_tasks=$total_tasks" >> $GITHUB_OUTPUT
+        echo "failed_count=$failed_count" >> $GITHUB_OUTPUT
+        echo "failed_tasks_str=$failed_tasks_str" >> $GITHUB_OUTPUT
+        echo "failed_assignees=$failed_assignees_str" >> $GITHUB_OUTPUT
+        echo "all_tasks_merged=$([[ $merged_count -eq $total_tasks && $total_tasks -gt 0 ]] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+        echo "process_success=$([[ $failed_count -eq 0 || $merged_count -gt 0 ]] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+        echo "has_tasks=$([[ $total_tasks -gt 0 ]] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+
+        # Add to step summary
+        {
+          echo "### ${{ inputs.status }} Tasks Processing Summary"
+          echo "- **Total ${{ inputs.status }} tasks:** $total_tasks"
+          echo "- **Successfully merged:** $merged_count"
+          echo "- **Failed:** $failed_count"
+          echo "- **Status:** $([[ $merged_count -eq $total_tasks && $total_tasks -gt 0 ]] && echo "✅ All tasks merged" || echo "⚠️ Partial success or no tasks")"
+          
+          # Add failed tasks details if any
+          if [ -n "$failed_tasks_str" ] && [ "$failed_count" -gt 0 ]; then
+            echo ""
+            echo "**❌ Failed Tasks:**"
+            IFS='|' read -ra failed_tasks <<< "$failed_tasks_str"
+            for task in "${failed_tasks[@]}"; do
+              echo "  - $task"
+            done
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        # Clean up
+        rm -f /tmp/clickup_${{ inputs.status }}_response.json
