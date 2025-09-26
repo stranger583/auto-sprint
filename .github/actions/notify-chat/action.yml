@@ -58,7 +58,7 @@ runs:
         - *Failed:* ${{ inputs.failed_count }}
         - *Tag Moved:* ${{ inputs.tag_moved }}"
         elif [ "${{ inputs.type }}" = "error" ]; then
-          EMOJI="🔴"
+          EMOJI="🔴🔴"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Tasks Processing Failed"
           
           # Build failed information
