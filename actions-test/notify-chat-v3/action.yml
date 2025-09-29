@@ -78,8 +78,7 @@ runs:
         ❌ *Failed Tasks:*"
             # Debug: Log the received failed_tasks input
             echo "🔍 Debug: received failed_tasks='${{ inputs.failed_tasks }}'" >&2
-            failed_tasks_input="${{ inputs.failed_tasks }}"
-            echo "🔍 Debug: failed_tasks length=${#failed_tasks_input}" >&2
+            echo "🔍 Debug: failed_tasks length=${#{{ inputs.failed_tasks }}}" >&2
             
             # Split failed tasks and format as list
             IFS='|' read -ra tasks <<< "${{ inputs.failed_tasks }}"
@@ -92,22 +91,8 @@ runs:
             for task in "${tasks[@]}"; do
               if [ -n "$task" ]; then
                 echo "🔍 Debug: Processing task: '$task'" >&2
-                
-                # Extract assignee from task format: "task_name (branch) - assignee"
-                assignee=$(echo "$task" | sed 's/.* - \([^-]*\)$/\1/')
-                echo "🔍 Debug: Extracted assignee: '$assignee'" >&2
-                
-                # Format task with @ mention if assignee is not "unassigned"
-                if [ "$assignee" != "unassigned" ] && [ -n "$assignee" ]; then
-                  # Use Google Chat mention format - try different formats
-                  # Format 1: Simple @username (most common)
-                  formatted_task="${task} @${assignee}"
-                else
-                  formatted_task="${task}"
-                fi
-                
                 FAILED_INFO="${FAILED_INFO}
-        - ${formatted_task}"
+        - ${task}"
               else
                 echo "🔍 Debug: Skipping empty task" >&2
               fi
