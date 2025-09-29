@@ -99,6 +99,8 @@ runs:
                 
                 # Format task with @ mention if assignee is not "unassigned"
                 if [ "$assignee" != "unassigned" ] && [ -n "$assignee" ]; then
+                  # Use Google Chat mention format - try different formats
+                  # Format 1: Simple @username (most common)
                   formatted_task="${task} @${assignee}"
                 else
                   formatted_task="${task}"
