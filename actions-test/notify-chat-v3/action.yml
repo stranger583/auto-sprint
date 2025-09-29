@@ -92,8 +92,20 @@ runs:
             for task in "${tasks[@]}"; do
               if [ -n "$task" ]; then
                 echo "🔍 Debug: Processing task: '$task'" >&2
+                
+                # Extract assignee from task format: "task_name (branch) - assignee"
+                assignee=$(echo "$task" | sed 's/.* - \([^-]*\)$/\1/')
+                echo "🔍 Debug: Extracted assignee: '$assignee'" >&2
+                
+                # Format task with @ mention if assignee is not "unassigned"
+                if [ "$assignee" != "unassigned" ] && [ -n "$assignee" ]; then
+                  formatted_task="${task} @${assignee}"
+                else
+                  formatted_task="${task}"
+                fi
+                
                 FAILED_INFO="${FAILED_INFO}
-        - ${task}"
+        - ${formatted_task}"
               else
                 echo "🔍 Debug: Skipping empty task" >&2
               fi
