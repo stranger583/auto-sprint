@@ -55,18 +55,16 @@ runs:
         if [ "${{ inputs.type }}" = "success" ]; then
           EMOJI="🟢"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Merge Success"
-          ADDITIONAL_INFO="📁 *Repository:* \`${GITHUB_REPOSITORY}\`
+          ADDITIONAL_INFO="- *Repository:* \`${GITHUB_REPOSITORY}\`
         - *Branch:* \`${{ inputs.branch_name }}\`
         - *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
         - *Successfully merged:* ${{ inputs.merged_count }}
-        - *Failed:* ${{ inputs.failed_count }}
-        - *Tag Moved:* ${{ inputs.tag_moved }}"
         elif [ "${{ inputs.type }}" = "error" ]; then
           EMOJI="🔴"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Tasks Processing Failed"
           
           # Build failed information
-          FAILED_INFO="📁 *Repository:* \`${GITHUB_REPOSITORY}\`
+          FAILED_INFO="- *Repository:* \`${GITHUB_REPOSITORY}\`
         - *Branch:* \`${{ inputs.branch_name }}\`
         - *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
         - *Successfully merged:* ${{ inputs.merged_count }}
@@ -104,13 +102,10 @@ runs:
           ADDITIONAL_INFO="$FAILED_INFO"
         else
           EMOJI="🟢"
-          TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Move Tag Success"
-          ADDITIONAL_INFO="📁 *Repository:* \`${GITHUB_REPOSITORY}\`
-        🌿 *Branch:* \`${{ inputs.branch_name }}\`
-        🏷️ *Tag:* \`${{ inputs.branch_type }}\`
-        📊 *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
-        ✅ *Successfully merged:* ${{ inputs.merged_count }}
-        ❌ *Failed:* ${{ inputs.failed_count }}"
+          TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Move Tag Success 🏷️"
+          ADDITIONAL_INFO="Repository: ${GITHUB_REPOSITORY}
+        Branch: ${{ inputs.branch_name }}
+        Tag: ${{ inputs.branch_type }}"
         fi
 
         # 構建完整訊息
