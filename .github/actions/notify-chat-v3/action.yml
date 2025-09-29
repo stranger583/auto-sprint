@@ -58,7 +58,7 @@ runs:
           ADDITIONAL_INFO="- *Repository:* \`${GITHUB_REPOSITORY}\`
         - *Branch:* \`${{ inputs.branch_name }}\`
         - *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
-        - *Successfully merged:* ${{ inputs.merged_count }}
+        - *Successfully merged:* ${{ inputs.merged_count }}"
         elif [ "${{ inputs.type }}" = "error" ]; then
           EMOJI="🔴"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Tasks Processing Failed"
