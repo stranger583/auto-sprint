@@ -189,7 +189,7 @@ runs:
               if merge_task_branch "$task_name" "$branch_name" "$task_type"; then
                 merged_count=$((merged_count + 1))
               else
-                failed_tasks+=("$task_name ($branch_name) - Assignee: $assignee")
+                failed_tasks+=("$task_name ($branch_name) - $assignee")
                 if [ "$assignee" != "unassigned" ]; then
                   failed_assignees+=("$assignee")
                 fi
