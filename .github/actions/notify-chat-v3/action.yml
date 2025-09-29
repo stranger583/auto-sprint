@@ -24,6 +24,10 @@ inputs:
     description: "Total number of tasks"
     required: false
     default: "0"
+  failed_count:
+    description: "Number of failed tasks"
+    required: false
+    default: "0"
   failed_tasks:
     description: "Failed tasks list"
     required: false
