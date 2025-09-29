@@ -206,6 +206,10 @@ runs:
           # Report failed tasks
           if [ ${#failed_tasks[@]} -gt 0 ]; then
             echo "❌ Failed $task_type tasks:" >&2
+            echo "🔍 Debug: failed_tasks array has ${#failed_tasks[@]} items" >&2
+            for i in "${!failed_tasks[@]}"; do
+              echo "🔍 Debug: failed_tasks[$i]='${failed_tasks[$i]}'" >&2
+            done
             for task in "${failed_tasks[@]}"; do
               echo "   $task" >&2
             done
@@ -228,7 +232,9 @@ runs:
           local failed_tasks_str=""
           local failed_assignees_str=""
           if [ ${#failed_tasks[@]} -gt 0 ]; then
+            echo "🔍 Debug: Creating failed_tasks_str from ${#failed_tasks[@]} items" >&2
             failed_tasks_str=$(printf "%s|" "${failed_tasks[@]}" | sed 's/|$//')
+            echo "🔍 Debug: failed_tasks_str='$failed_tasks_str'" >&2
           fi
           if [ ${#failed_assignees[@]} -gt 0 ]; then
             # Remove duplicates and create unique assignees list
