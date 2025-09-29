@@ -78,7 +78,8 @@ runs:
         ❌ *Failed Tasks:*"
             # Debug: Log the received failed_tasks input
             echo "🔍 Debug: received failed_tasks='${{ inputs.failed_tasks }}'" >&2
-            echo "🔍 Debug: failed_tasks length=${#{{ inputs.failed_tasks }}}" >&2
+            failed_tasks_input="${{ inputs.failed_tasks }}"
+            echo "🔍 Debug: failed_tasks length=${#failed_tasks_input}" >&2
             
             # Split failed tasks and format as list
             IFS='|' read -ra tasks <<< "${{ inputs.failed_tasks }}"
