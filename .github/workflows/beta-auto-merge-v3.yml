@@ -28,13 +28,13 @@ jobs:
         run: |
           echo "--- Current Working Directory ---"
           pwd
-          
+
           echo "--- Full directory listing of .github/actions ---"
           ls -laR ./.github/actions
-          
+
           echo "--- Attempting to read the specific action.yml file ---"
           cat ./.github/actions/notify-chat-v3/action.yml || echo "!!! FAILED to find action.yml at the expected path !!!"
-          
+
           echo "--- Debug step finished ---"
 
       - name: Show current commit 除錯用
