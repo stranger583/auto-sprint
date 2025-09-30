@@ -129,7 +129,7 @@ jobs:
 
       - name: Notify Delta Move Tag Success
         if: steps.find_beta.outputs.beta_exists == 'true' && steps.move_delta_tag.outputs.tag_moved == 'true'
-        uses: ./.github/actions/notify-chat
+        uses: stranger583/auto-sprint/.github/actions/notify-chat-v3@master
         with:
           name: "Delta Move Tag Success"
           url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
