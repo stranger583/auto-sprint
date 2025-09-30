@@ -73,7 +73,7 @@ runs:
           # Add failed tasks if available
           if [ -n "${{ inputs.failed_tasks }}" ]; then
             FAILED_INFO="${FAILED_INFO}
-        ❌ *Failed Tasks:*"
+            ❌ *Failed Tasks:*"
             # Debug: Log the received failed_tasks input
             echo "🔍 Debug: received failed_tasks='${{ inputs.failed_tasks }}'" >&2
             failed_tasks_input="${{ inputs.failed_tasks }}"
