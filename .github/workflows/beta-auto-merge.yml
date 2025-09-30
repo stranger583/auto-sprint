@@ -97,6 +97,9 @@ jobs:
           type: "error"
           branch_type: "beta"
           branch_name: ${{ steps.create_beta.outputs.branch_name }}
+          merged_count: ${{ steps.process_beta.outputs.merged_count }}
+          total_tasks: ${{ steps.process_beta.outputs.total_tasks }}
+          failed_count: ${{ steps.process_beta.outputs.failed_count }}
           failed_tasks: ${{ steps.process_beta.outputs.failed_tasks_str }}
           failed_assignees: ${{ steps.process_beta.outputs.failed_assignees }}
           failed_branches: ${{ steps.create_beta.outputs.branch_name }}
