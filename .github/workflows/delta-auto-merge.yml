@@ -102,6 +102,31 @@ jobs:
           branch_name: ${{ steps.create_delta.outputs.branch_name }}
           step_name: "delta"
 
+      - name: Notify Delta Merge Success
+        if: steps.find_beta.outputs.beta_exists == 'true' && steps.process_delta.outputs.merged_count > 0 && steps.process_delta.outputs.failed_count == 0
+        uses: stranger583/auto-sprint/.github/actions/notify-chat@master
+        with:
+          name: "Delta Merge Success"
+          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
+          type: "success"
+          branch_type: "delta"
+          branch_name: ${{ steps.create_delta.outputs.branch_name }}
+          merged_count: ${{ steps.process_delta.outputs.merged_count }}
+          total_tasks: ${{ steps.process_delta.outputs.total_tasks }}
+
+      - name: Notify Delta Merge Error
+        if: steps.find_beta.outputs.beta_exists == 'true' && steps.process_delta.outputs.failed_count > 0
+        uses: stranger583/auto-sprint/.github/actions/notify-chat@master
+        with:
+          name: "Delta Merge Error"
+          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
+          type: "error"
+          branch_type: "delta"
+          branch_name: ${{ steps.create_delta.outputs.branch_name }}
+          failed_tasks: ${{ steps.process_delta.outputs.failed_tasks_str }}
+          failed_assignees: ${{ steps.process_delta.outputs.failed_assignees }}
+          failed_branches: ${{ steps.create_delta.outputs.branch_name }}
+
       - name: Notify Delta Move Tag Success
         if: steps.find_beta.outputs.beta_exists == 'true' && steps.move_delta_tag.outputs.tag_moved == 'true'
         uses: ./.github/actions/notify-chat
@@ -114,35 +139,9 @@ jobs:
           merged_count: ${{ steps.process_delta.outputs.merged_count }}
           total_tasks: ${{ steps.process_delta.outputs.total_tasks }}
 
-      - name: Notify Delta Merge Success
-        if: steps.find_beta.outputs.beta_exists == 'true' && steps.process_delta.outputs.merged_count > 0 && steps.process_delta.outputs.failed_count == 0
-        uses: ./.github/actions/notify-chat
-        with:
-          name: "Delta Merge Success"
-          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
-          type: "success"
-          branch_type: "delta"
-          branch_name: ${{ steps.create_delta.outputs.branch_name }}
-          merged_count: ${{ steps.process_delta.outputs.merged_count }}
-          total_tasks: ${{ steps.process_delta.outputs.total_tasks }}
-          tag_moved: ${{ steps.move_delta_tag.outputs.tag_moved == 'true' && 'Yes (delta)' || 'No' }}
-
-      - name: Notify Delta Merge Error
-        if: steps.find_beta.outputs.beta_exists == 'true' && steps.process_delta.outputs.failed_count > 0
-        uses: ./.github/actions/notify-chat
-        with:
-          name: "Delta Merge Error"
-          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
-          type: "error"
-          branch_type: "delta"
-          branch_name: ${{ steps.create_delta.outputs.branch_name }}
-          failed_tasks: ${{ steps.process_delta.outputs.failed_tasks_str }}
-          failed_assignees: ${{ steps.process_delta.outputs.failed_assignees }}
-          failed_branches: ${{ steps.create_delta.outputs.branch_name }}
-
       - name: Notify Delta Beta Branch Not Found
         if: steps.find_beta.outputs.beta_exists == 'false'
-        uses: ./.github/actions/notify-chat
+        uses: stranger583/auto-sprint/.github/actions/notify-chat@master
         with:
           name: "Delta Beta Branch Not Found"
           url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}

@@ -1,4 +1,4 @@
-name: "Notify Google Chat"
+name: "Notify Google Chat v3"
 description: "Send notification to Google Chat with standardized format"
 inputs:
   name:
@@ -24,6 +24,10 @@ inputs:
     description: "Total number of tasks"
     required: false
     default: "0"
+  failed_count:
+    description: "Number of failed tasks"
+    required: false
+    default: "0"
   failed_tasks:
     description: "Failed tasks list"
     required: false
@@ -44,25 +48,23 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Send Google Chat Notification
+    - name: Send Google Chat Notification v3
       shell: bash
       run: |
-        # 準備訊息內容 (測試快取是否存在)
+        # 準備訊息內容
         if [ "${{ inputs.type }}" = "success" ]; then
           EMOJI="🟢"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Merge Success"
-          ADDITIONAL_INFO="📁 *Repository:* \`${GITHUB_REPOSITORY}\`
+          ADDITIONAL_INFO="- *Repository:* \`${GITHUB_REPOSITORY}\`
         - *Branch:* \`${{ inputs.branch_name }}\`
         - *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
-        - *Successfully merged:* ${{ inputs.merged_count }}
-        - *Failed:* ${{ inputs.failed_count }}
-        - *Tag Moved:* ${{ inputs.tag_moved }}"
+        - *Successfully merged:* ${{ inputs.merged_count }}"
         elif [ "${{ inputs.type }}" = "error" ]; then
           EMOJI="🔴"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Tasks Processing Failed"
           
           # Build failed information
-          FAILED_INFO="📁 *Repository:* \`${GITHUB_REPOSITORY}\`
+          FAILED_INFO="- *Repository:* \`${GITHUB_REPOSITORY}\`
         - *Branch:* \`${{ inputs.branch_name }}\`
         - *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
         - *Successfully merged:* ${{ inputs.merged_count }}
@@ -74,27 +76,36 @@ runs:
         ❌ *Failed Tasks:*"
             # Debug: Log the received failed_tasks input
             echo "🔍 Debug: received failed_tasks='${{ inputs.failed_tasks }}'" >&2
+            failed_tasks_input="${{ inputs.failed_tasks }}"
+            echo "🔍 Debug: failed_tasks length=${#failed_tasks_input}" >&2
+            
             # Split failed tasks and format as list
             IFS='|' read -ra tasks <<< "${{ inputs.failed_tasks }}"
             echo "🔍 Debug: split into ${#tasks[@]} tasks" >&2
             for i in "${!tasks[@]}"; do
               echo "🔍 Debug: task[$i]='${tasks[$i]}'" >&2
             done
+            
+            # Process each task
             for task in "${tasks[@]}"; do
-              FAILED_INFO="${FAILED_INFO}
+              if [ -n "$task" ]; then
+                echo "🔍 Debug: Processing task: '$task'" >&2
+                FAILED_INFO="${FAILED_INFO}
         - ${task}"
+              else
+                echo "🔍 Debug: Skipping empty task" >&2
+              fi
             done
+          else
+            echo "🔍 Debug: No failed_tasks input provided" >&2
           fi
           ADDITIONAL_INFO="$FAILED_INFO"
         else
-          EMOJI="🟢"
-          TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Move Tag Success"
-          ADDITIONAL_INFO="📁 *Repository:* \`${GITHUB_REPOSITORY}\`
-        🌿 *Branch:* \`${{ inputs.branch_name }}\`
-        🏷️ *Tag:* \`${{ inputs.branch_type }}\`
-        📊 *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
-        ✅ *Successfully merged:* ${{ inputs.merged_count }}
-        ❌ *Failed:* ${{ inputs.failed_count }}"
+          EMOJI="🎉"
+          TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Move Tag Success 🏷️"
+          ADDITIONAL_INFO="Repository: ${GITHUB_REPOSITORY}
+        - *Branch:* \`${{ inputs.branch_name }}\`
+        - *Tag:* \`${{ inputs.branch_type }}\`
         fi
 
         # 構建完整訊息
