@@ -48,7 +48,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Send Google Chat Notification v3
+    - name: Send Google Chat Notification
       shell: bash
       run: |
         # 準備訊息內容

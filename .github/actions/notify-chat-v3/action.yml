@@ -101,7 +101,7 @@ runs:
           fi
           ADDITIONAL_INFO="$FAILED_INFO"
         else
-          EMOJI="🟢"
+          EMOJI="🎉"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Move Tag Success 🏷️"
           ADDITIONAL_INFO="Repository: ${GITHUB_REPOSITORY}
         Branch: ${{ inputs.branch_name }}
