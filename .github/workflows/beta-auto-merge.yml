@@ -78,7 +78,7 @@ jobs:
 
       - name: Notify Beta Merge Success
         if: steps.process_beta.outputs.merged_count > 0 && steps.process_beta.outputs.failed_count == 0
-        uses: stranger583/auto-sprint/.github/actions/notify-chat@master
+        uses: stranger583/auto-sprint/.github/actions/notify-chat-v3@master
         with:
           name: "Beta Merge Success"
           url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
@@ -90,7 +90,7 @@ jobs:
 
       - name: Notify Beta Merge Error
         if: steps.process_beta.outputs.failed_count > 0
-        uses: stranger583/auto-sprint/.github/actions/notify-chat@master
+        uses: stranger583/auto-sprint/.github/actions/notify-chat-v3@master
         with:
           name: "Beta Merge Error"
           url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
@@ -103,7 +103,7 @@ jobs:
 
       - name: Notify Beta Move Tag Success
         if: steps.move_beta_tag.outputs.tag_moved == 'true'
-        uses: stranger583/auto-sprint/.github/actions/notify-chat@master
+        uses: stranger583/auto-sprint/.github/actions/notify-chat-v3@master
         with:
           name: "Beta Move Tag Success"
           url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
