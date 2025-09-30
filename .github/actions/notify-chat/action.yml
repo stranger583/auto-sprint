@@ -105,7 +105,7 @@ runs:
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Move Tag Success 🏷️"
           ADDITIONAL_INFO="Repository: ${GITHUB_REPOSITORY}
         - *Branch:* \`${{ inputs.branch_name }}\`
-        - *Tag:* \`${{ inputs.branch_type }}\`
+        - *Tag:* \`${{ inputs.branch_type }}\`"
         fi
 
         # 構建完整訊息
