@@ -8,7 +8,7 @@ inputs:
     description: "Google Chat webhook URL"
     required: true
   type:
-    description: "Notification type (success, error, tag_success)"
+    description: "Notification type (success, error)"
     required: true
   branch_type:
     description: "Branch type (beta, delta)"
@@ -60,7 +60,7 @@ runs:
         - *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
         - *Successfully merged:* ${{ inputs.merged_count }}"
         - *Move Tag:* ${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Move Tag Success"
-        elif [ "${{ inputs.type }}" = "error" ]; then
+        else
           EMOJI="🔴"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Tasks Processing Failed"
           
