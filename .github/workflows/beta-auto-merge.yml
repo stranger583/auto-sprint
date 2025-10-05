@@ -104,18 +104,6 @@ jobs:
           failed_assignees: ${{ steps.process_beta.outputs.failed_assignees }}
           failed_branches: ${{ steps.create_beta.outputs.branch_name }}
 
-      - name: Notify Beta Move Tag Success
-        if: steps.move_beta_tag.outputs.tag_moved == 'true'
-        uses: stranger583/auto-sprint/.github/actions/notify-chat@master
-        with:
-          name: "Beta Move Tag Success"
-          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
-          type: "tag_success"
-          branch_type: "beta"
-          branch_name: ${{ steps.create_beta.outputs.branch_name }}
-          merged_count: ${{ steps.process_beta.outputs.merged_count }}
-          total_tasks: ${{ steps.process_beta.outputs.total_tasks }}
-
       - name: Trigger Delta Workflow
         if: steps.process_beta.outputs.process_success == 'true' && (steps.process_beta.outputs.all_tasks_merged == 'true' || steps.process_beta.outputs.has_tasks == 'false')
         uses: actions/github-script@v7
