@@ -8,7 +8,7 @@ inputs:
     description: "Google Chat webhook URL"
     required: true
   type:
-    description: "Notification type (success, error)"
+    description: "Notification type (success, error, tag_success)"
     required: true
   branch_type:
     description: "Branch type (beta, delta)"
@@ -51,15 +51,16 @@ runs:
     - name: Send Google Chat Notification
       shell: bash
       run: |
-        # 準備訊息內容
+        # 準備訊息內容 (測試快取是否存在)
         if [ "${{ inputs.type }}" = "success" ]; then
           EMOJI="🟢"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Merge Success"
           ADDITIONAL_INFO="- *Repository:* \`${GITHUB_REPOSITORY}\`
         - *Branch:* \`${{ inputs.branch_name }}\`
         - *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
-        - *Successfully merged:* ${{ inputs.merged_count }}"
-        else
+        - *Successfully merged:* ${{ inputs.merged_count }}
+        - *Move Tag:* ${{ inputs.tag_moved }}"
+        elif [ "${{ inputs.type }}" = "error" ]; then
           EMOJI="🔴"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Tasks Processing Failed"
           
@@ -100,6 +101,13 @@ runs:
             echo "🔍 Debug: No failed_tasks input provided" >&2
           fi
           ADDITIONAL_INFO="$FAILED_INFO"
+        else
+          EMOJI="🎉"
+          TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Move Tag Success 🏷️"
+          ADDITIONAL_INFO="Repository: ${GITHUB_REPOSITORY}
+        Branch: ${{ inputs.branch_name }}
+        Tag: ${{ inputs.branch_type }}"
+        fi
 
         # 構建完整訊息
         MESSAGE="${EMOJI} *${TITLE}*
