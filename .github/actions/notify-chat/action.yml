@@ -59,7 +59,7 @@ runs:
         - *Branch:* \`${{ inputs.branch_name }}\`
         - *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
         - *Successfully merged:* ${{ inputs.merged_count }}
-        - *Move Tag:* ${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} ${{ inputs.tag_moved }}"
+        - *Move Tag:* ${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} ${{ inputs.tag_moved == 'true' && 'Success' || 'Failed' }}"
         elif [ "${{ inputs.type }}" = "error" ]; then
           EMOJI="🔴"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Tasks Processing Failed"
