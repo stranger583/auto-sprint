@@ -36,7 +36,7 @@ jobs:
 
       - name: Setup Environment
         id: setup
-        uses: stranger583/auto-sprint/.github/actions/setup-environment
+        uses: stranger583/auto-sprint/.github/actions/setup-environment@master
         with:
           branch_type: "beta"
 
@@ -60,7 +60,7 @@ jobs:
 
       - name: Process Beta Tasks
         id: process_beta
-        uses: stranger583/auto-sprint/.github/actions/clickup-tasks
+        uses: stranger583/auto-sprint/.github/actions/clickup-tasks@master
         with:
           status: "beta"
           branch_name: ${{ steps.create_beta.outputs.branch_name }}
@@ -68,7 +68,7 @@ jobs:
       - name: Move Beta Tag
         id: move_beta_tag
         if: steps.process_beta.outputs.process_success == 'true'
-        uses: stranger583/auto-sprint/.github/actions/move-tag
+        uses: stranger583/auto-sprint/.github/actions/move-tag@master
         with:
           merged_count: ${{ steps.process_beta.outputs.merged_count }}
           failed_count: ${{ steps.process_beta.outputs.failed_count }}
