@@ -36,6 +36,7 @@ runs:
           if yarn move-tag "${{ inputs.tag_name }}"; then
             echo "✅ Successfully moved ${{ inputs.tag_name }} tag"
             echo "tag_moved=true" >> $GITHUB_OUTPUT
+            echo "🔍 Debug: Set tag_moved=true" >&2
             
             {
               echo "### 🏷️ ${{ inputs.step_name }} Tag Movement"
