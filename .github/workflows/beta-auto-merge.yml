@@ -87,6 +87,7 @@ jobs:
           branch_name: ${{ steps.create_beta.outputs.branch_name }}
           merged_count: ${{ steps.process_beta.outputs.merged_count }}
           total_tasks: ${{ steps.process_beta.outputs.total_tasks }}
+          tag_moved: ${{ steps.move_beta_tag.outputs.tag_moved }}
 
       - name: Notify Beta Merge Error
         if: steps.process_beta.outputs.failed_count > 0
