@@ -30,7 +30,7 @@ jobs:
 
       - name: Setup Environment
         id: setup
-        uses: ./.github/actions/setup-environment
+        uses: stranger583/auto-sprint/.github/actions/setup-environment
         with:
           branch_type: "delta"
 
@@ -86,7 +86,7 @@ jobs:
       - name: Process Delta Tasks
         id: process_delta
         if: steps.find_beta.outputs.beta_exists == 'true'
-        uses: ./.github/actions/clickup-tasks
+        uses: stranger583/auto-sprint/.github/actions/clickup-tasks
         with:
           status: "delta"
           branch_name: ${{ steps.create_delta.outputs.branch_name }}
@@ -94,7 +94,7 @@ jobs:
       - name: Move Delta Tag
         id: move_delta_tag
         if: steps.process_delta.outputs.process_success == 'true'
-        uses: ./.github/actions/move-tag
+        uses: stranger583/auto-sprint/.github/actions/move-tag
         with:
           merged_count: ${{ steps.process_delta.outputs.merged_count }}
           failed_count: ${{ steps.process_delta.outputs.failed_count }}
