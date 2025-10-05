@@ -58,8 +58,8 @@ runs:
           ADDITIONAL_INFO="- *Repository:* \`${GITHUB_REPOSITORY}\`
         - *Branch:* \`${{ inputs.branch_name }}\`
         - *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
-        - *Successfully merged:* ${{ inputs.merged_count }}"
-        - *Move Tag:* \`${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }}\`
+        - *Successfully merged:* ${{ inputs.merged_count }}
+        - *Tag:* \`${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }}\` Move Tag Success"
         else
           EMOJI="🔴"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Tasks Processing Failed"
