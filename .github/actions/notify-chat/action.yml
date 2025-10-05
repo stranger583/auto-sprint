@@ -39,7 +39,7 @@ inputs:
   tag_moved:
     description: "Whether tag was moved"
     required: false
-    default: "No"
+    default: ""
   failed_assignees:
     description: "Failed tasks assignees to mention"
     required: false
