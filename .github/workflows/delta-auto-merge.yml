@@ -137,7 +137,7 @@ jobs:
           failed_branches: ${{ steps.create_delta.outputs.branch_name }}
 
       - name: Notify Delta Beta Branch Not Found
-        if: steps.find_beta.outputs.beta_exists == 'false'
+        if: steps.find_beta.outputs.beta_exists == 'false' && steps.process_delta.outputs.failed_count == 0
         uses: stranger583/auto-sprint/.github/actions/notify-chat@master
         with:
           name: "Delta Beta Branch Not Found"
