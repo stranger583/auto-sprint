@@ -136,17 +136,6 @@ jobs:
           failed_assignees: ${{ steps.process_delta.outputs.failed_assignees }}
           failed_branches: ${{ steps.create_delta.outputs.branch_name }}
 
-      - name: Notify Delta Beta Branch Not Found
-        if: steps.find_beta.outputs.beta_exists == 'false' && steps.process_delta.outputs.failed_count == 0
-        uses: stranger583/auto-sprint/.github/actions/notify-chat@master
-        with:
-          name: "Delta Beta Branch Not Found"
-          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
-          type: "warning"
-          branch_type: "delta"
-          branch_name: ${{ steps.create_delta.outputs.branch_name }}
-          message: "Created delta branch from master (beta branch not found)"
-
       - name: Generate Summary
         if: always()
         run: |
