@@ -49,9 +49,9 @@ jobs:
             echo "beta_branch=$BETA_BRANCH" >> $GITHUB_OUTPUT
             echo "beta_exists=true" >> $GITHUB_OUTPUT
           else
-            echo "❌ Beta branch $BETA_BRANCH not found"
+            echo "❌ Beta branch $BETA_BRANCH not found, will create delta from master"
+            echo "beta_branch=$BETA_BRANCH" >> $GITHUB_OUTPUT
             echo "beta_exists=false" >> $GITHUB_OUTPUT
-            exit 1
           fi
 
       - name: Create Delta Branch
@@ -59,22 +59,28 @@ jobs:
         run: |
           DELTA_BRANCH="${{ steps.setup.outputs.branch_name }}"
           BETA_BRANCH="${{ steps.find_beta.outputs.beta_branch }}"
+          BETA_EXISTS="${{ steps.find_beta.outputs.beta_exists }}"
 
           echo "📅 Creating delta branch: $DELTA_BRANCH"
-          echo "   From beta branch: $BETA_BRANCH"
 
           if git ls-remote --exit-code --heads origin $DELTA_BRANCH >/dev/null 2>&1; then
             echo "⚠️ Delta branch $DELTA_BRANCH already exists"
             echo "branch_exists=true" >> $GITHUB_OUTPUT
             echo "branch_created=false" >> $GITHUB_OUTPUT
           else
-            echo "✨ Creating new delta branch from beta branch..."
+            if [ "$BETA_EXISTS" = "true" ]; then
+              echo "✨ Creating new delta branch from beta branch: $BETA_BRANCH"
+              # Checkout to beta branch first
+              git checkout $BETA_BRANCH
+              git pull origin $BETA_BRANCH
+            else
+              echo "✨ Creating new delta branch from master (beta not found)"
+              # Stay on master branch
+              git checkout master
+              git pull origin master
+            fi
             
-            # Checkout to beta branch first
-            git checkout $BETA_BRANCH
-            git pull origin $BETA_BRANCH
-            
-            # Create delta branch from beta branch
+            # Create delta branch
             git checkout -b $DELTA_BRANCH
             git push origin $DELTA_BRANCH
             echo "branch_exists=false" >> $GITHUB_OUTPUT
@@ -85,7 +91,6 @@ jobs:
 
       - name: Process Delta Tasks
         id: process_delta
-        if: steps.find_beta.outputs.beta_exists == 'true'
         uses: stranger583/auto-sprint/.github/actions/clickup-tasks@master
         with:
           status: "delta"
@@ -103,7 +108,7 @@ jobs:
           step_name: "delta"
 
       - name: Notify Delta Merge Success
-        if: steps.find_beta.outputs.beta_exists == 'true' && steps.process_delta.outputs.merged_count > 0 && steps.process_delta.outputs.failed_count == 0
+        if: steps.process_delta.outputs.merged_count > 0 && steps.process_delta.outputs.failed_count == 0
         uses: stranger583/auto-sprint/.github/actions/notify-chat@master
         with:
           name: "Delta Merge Success"
@@ -116,7 +121,7 @@ jobs:
           tag_moved: ${{ steps.move_delta_tag.outputs.tag_moved }}
 
       - name: Notify Delta Merge Error
-        if: steps.find_beta.outputs.beta_exists == 'true' && steps.process_delta.outputs.failed_count > 0
+        if: steps.process_delta.outputs.failed_count > 0
         uses: stranger583/auto-sprint/.github/actions/notify-chat@master
         with:
           name: "Delta Merge Error"
@@ -137,10 +142,10 @@ jobs:
         with:
           name: "Delta Beta Branch Not Found"
           url: ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
-          type: "error"
+          type: "warning"
           branch_type: "delta"
-          branch_name: "N/A"
-          failed_branches: ${{ steps.find_beta.outputs.beta_branch }}
+          branch_name: ${{ steps.create_delta.outputs.branch_name }}
+          message: "Created delta branch from master (beta branch not found)"
 
       - name: Generate Summary
         if: always()
