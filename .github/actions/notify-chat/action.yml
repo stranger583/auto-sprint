@@ -60,7 +60,7 @@ runs:
         - *Total ${{ inputs.branch_type }} tasks:* ${{ inputs.total_tasks }}
         - *Successfully merged:* ${{ inputs.merged_count }}
         - *Move Tag:* ${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} ${{ inputs.tag_moved == 'true' && 'Success' || 'Failed' }}"
-        elif [ "${{ inputs.type }}" = "error" ]; then
+        else
           EMOJI="🔴"
           TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Tasks Processing Failed"
           
@@ -101,12 +101,6 @@ runs:
             echo "🔍 Debug: No failed_tasks input provided" >&2
           fi
           ADDITIONAL_INFO="$FAILED_INFO"
-        else
-          EMOJI="🎉"
-          TITLE="${{ inputs.branch_type == 'beta' && 'Beta' || 'Delta' }} Move Tag Success 🏷️"
-          ADDITIONAL_INFO="Repository: ${GITHUB_REPOSITORY}
-        Branch: ${{ inputs.branch_name }}
-        Tag: ${{ inputs.branch_type }}"
         fi
 
         # 構建完整訊息
